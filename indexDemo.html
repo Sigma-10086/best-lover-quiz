@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>最佳恋人测试问卷</title>
+<style>
+/* ====================== 全局样式 ====================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: #000;
+    color: #c9c9c9;
+    overflow-x: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px; /* 移动端避免紧贴屏幕边缘 */
+}
+
+/* ====================== 屏幕容器 ====================== */
+.screen {
+    width: 100%;
+    max-width: 600px; /* PC端最大宽度 */
+    height: auto;     /* 高度自适应 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ====================== 问卷选项按钮 ====================== */
+.option-button {
+    background: #1a1a1a;
+    color: #c9c9c9;
+    border: 1px solid #333;
+    padding: 12px 16px;
+    font-size: 1rem; /* rem自适应屏幕字体 */
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 5px 0;
+    width: 100%; /* 移动端占满容器宽度 */
+}
+
+.option-button:hover {
+    background: #2a2a2a;
+    border-color: #8b0000;
+}
+
+/* ====================== 闪烁文字 ====================== */
+.flash-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5vw; /* 根据屏幕宽度自适应 */
+    max-font-size: 48px;
+    color: #ff0000;
+    text-shadow: 0 0 20px #ff0000;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+/* ====================== 进度条 ====================== */
+.progress-bar {
+    width: 100%;
+    max-width: 500px;
+    height: 10px;
+    background: #333;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #8b0000;
+    transition: width 0.3s;
+}
+
+/* ====================== 特效层 ====================== */
+#effect-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* ====================== 抖动动画 ====================== */
+@keyframes shake-medium{
+  0%{transform:translateX(-50%) translate(1px,1px) rotate(0deg);}
+  10%{transform:translateX(-50%) translate(-1px,-1px) rotate(-1deg);}
+  20%{transform:translateX(-50%) translate(-2px,0px) rotate(1deg);}
+  30%{transform:translateX(-50%) translate(2px,2px) rotate(0deg);}
+  40%{transform:translateX(-50%) translate(1px,-1px) rotate(1deg);}
+  50%{transform:translateX(-50%) translate(-1px,1px) rotate(-1deg);}
+  60%{transform:translateX(-50%) translate(-2px,1px) rotate(0deg);}
+  70%{transform:translateX(-50%) translate(2px,1px) rotate(-1deg);}
+  80%{transform:translateX(-50%) translate(-1px,-1px) rotate(1deg);}
+  90%{transform:translateX(-50%) translate(1px,2px) rotate(0deg);}
+  100%{transform:translateX(-50%) translate(1px,-2px) rotate(-1deg);}
+}
+@keyframes shake-strong{
+  0%{transform:translateX(-50%) translate(3px,3px) rotate(2deg);}
+  10%{transform:translateX(-50%) translate(-3px,-3px) rotate(-2deg);}
+  20%{transform:translateX(-50%) translate(-5px,0px) rotate(3deg);}
+  30%{transform:translateX(-50%) translate(5px,5px) rotate(-2deg);}
+  40%{transform:translateX(-50%) translate(3px,-3px) rotate(2deg);}
+  50%{transform:translateX(-50%) translate(-3px,3px) rotate(-3deg);}
+  60%{transform:translateX(-50%) translate(-5px,3px) rotate(1deg);}
+  70%{transform:translateX(-50%) translate(5px,3px) rotate(-2deg);}
+  80%{transform:translateX(-50%) translate(-3px,-3px) rotate(3deg);}
+  90%{transform:translateX(-50%) translate(3px,5px) rotate(-1deg);}
+  100%{transform:translateX(-50%) translate(3px,-5px) rotate(2deg);}
+}
+.shake-medium{animation:shake-medium 0.5s infinite;}
+.shake-strong{animation:shake-strong 0.3s infinite;}
+
+/* ====================== 响应式调整 ====================== */
+@media screen and (max-width: 768px) {
+    .screen {
+        padding: 15px;
+    }
+    .option-button {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    .flash-text {
+        font-size: 8vw;
+    }
+}
+@media screen and (max-width: 480px) {
+    .option-button {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+    .flash-text {
+        font-size: 10vw;
+    }
+}
+</style>
+</head>
+<body>
+<audio id="bgm" loop>
+  <source src="bgm.mp3" type="audio/mpeg">
+  </audio>
+<div id="warning-screen" class="screen active">
+  <div class="warning-text">⚠️ 警告 ⚠️</div>
+  <div style="font-size:18px;max-width:600px;line-height:1.6;margin-bottom:20px;">
+    本界面含有微恐、闪烁内容及心理暗示，请谨慎浏览。
+  </div>
+  <button onclick="showScreen('cover-screen')">我已知晓，继续浏览</button>
+</div>
+
+<div id="cover-screen" class="screen">
+  <div style="font-size:32px;margin-bottom:20px;">最佳恋人测试问卷</div>
+  <div style="max-width:600px;text-align:center;margin-bottom:20px;">
+    想知道自己离“最佳恋人”有多近吗？完成这个调查问卷，即刻探寻答案！
+  </div>
+  <button onclick="startSurvey()">开始测试</button>
+</div>
+
+<div id="survey-screen" class="screen">
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  <div id="question-number"></div>
+  <div id="question-text" style="margin:20px 0;"></div>
+  <div id="options-container"></div>
+</div>
+
+<div id="ending-A" class="screen"><div>遗慰</div><div>结局（1/4）</div><button onclick="location.reload()">重新开始</button></div>
+<div id="ending-B" class="screen"><div>遗恨</div><div>结局（2/4）</div><button onclick="location.reload()">重新开始</button></div>
+<div id="ending-C" class="screen"><div>遗伪</div><div>结局（3/4）</div><button onclick="location.reload()">重新开始</button></div>
+<div id="ending-D" class="screen"><div>遗忘</div><div>结局（4/4）</div><button onclick="location.reload()">重新开始</button></div>
+
+<div id="effect-layer"></div>
+
+<script>
+let bgmAudio = null;
+document.addEventListener('DOMContentLoaded', function() {
+  bgmAudio = document.getElementById('bgm');
+  
+  // 监听整个页面的第一次点击，触发播放
+  document.addEventListener('click', function playBGMOnFirstClick() {
+    if (bgmAudio && bgmAudio.paused) {
+      bgmAudio.play().then(() => {
+        console.log('背景音乐已开始播放');
+      }).catch(error => {
+        console.log('背景音乐播放被阻止（正常现象，需用户交互）');
+      });
+    }
+  }, { once: true }); // 关键：确保只执行一次
+});
+
+let isProcessing = false;       // 仅用于问卷选项按钮
+let isEffectRunning = false;    // 特效锁
+
+const surveyData={
+  currentId:0,
+  answers:{gender:null,question12:null,question13:null,question15:null},
+  questions:[
+    {id:1,number:1,text:"请问您的性别是？",options:[{text:"男性",next:2},{text:"女性",next:3}]},
+    {id:2,number:2,text:"请问您目前有恋爱对象吗？",options:[{text:"有",effect:"flashText",effectText:"她真不幸",next:4},{text:"没有",effect:"flashText",effectText:"意料之中",next:4}]},
+    {id:3,number:2,text:"请问您记得您作为男性时的经历吗？",options:[{text:"不记得",next:4},{text:"记得",next:4}]},
+    {id:4,number:3,text:"您希望从恋爱过程中获得什么？",options:[{text:"情感支持",next:5},{text:"生活陪伴",next:5},{text:"社会资源",next:5}]},
+    {id:5,number:4,text:"您认为您能给您的恋爱对象什么？",options:[{text:"情感支持"},{text:"生活陪伴"},{text:"社会资源"}]},
+    {id:6,number:5,text:"您认为在以下哪个场所最适合与恋爱对象相处？",options:[
+      {text:"电影院",next:7},{text:"商场",next:7},{text:"京城会馆",effect:"expandText",effectText:"你还记得吗我们当时住在东边肃静人少不容易发现那天还下雨窗户纸都破了屋里就一个蜡烛我们刚从药房回来勺子还是我借的你却迟迟不",next:7}
+    ]},
+    {id:7,number:6,text:"您认为恋爱对象最重要的特质是什么？",options:[
+      {text:"外貌",effect:"blackScreen",effectText:"就是你",next:8},
+      {text:"个性",next:8},{text:"学识",next:8}]},
+    {id:8,number:7,text:"如果您的恋爱对象在您最艰苦的时候为您付出了许多许多，真的很多，您忍心辜负TA吗？",options:[{text:"忍心",next:9},{text:"不忍心",next:9}]},
+    {id:9,number:8,text:"如果您因为特殊原因无法履行您对爱人的承诺，您会怎么做？",options:[{text:"死",next:10},{text:"死",next:10},{text:"死",next:10}]},
+    {id:10,number:9,text:"特殊原因是什么？！",options:[{text:"对不起",next:11},{text:"对不起",next:11},{text:"对不起",next:11}],effect:"shake"},
+    {id:11,number:10,text:"回答我！！！",options:[{text:"*@#%&$#&%#%#",next:12},{text:"*&%#@*#%……#@",next:12},{text:"#$%&*@*%%@%",next:12}],effect:"strongShake"},
+    {id:12,number:11,text:"您怕死吗？",options:[{text:"怕",next:13},{text:"不怕",effect:"flashText",effectText:"要诚实",forceReselect:true,next:null}]},
+    {id:13,number:12,text:"如果您要自杀，您觉得以下哪种死亡方式最痛苦？",options:[{text:"自缢",next:14},{text:"服毒",next:15},{text:"自焚",next:14}]},
+    {id:14,number:13,text:"你还是忘了……",options:[{text:"荣华富贵真就那么好吗",next:16},{text:"你忘了我们在故乡的日子吗",next:16},{text:"你都说了那不是最痛苦的",next:16}]},
+    {id:15,number:13,text:"你记起来了！",options:[{text:"你觉得痛苦怎么不给我说呢",next:16},{text:"我们可以换一种方式的呀",next:16},{text:"这不是你抛弃我的理由",next:16}]},
+    {id:16,number:14,text:"你知道我一直在找你吗？",options:[{text:"知道",next:17},{text:"不知道",next:17},{text:"如果你还爱我就选这一个",next:17}]},
+    {id:17,number:15,text:"你后悔吗？",options:[{text:"后悔",next:"ending"},{text:"不后悔",next:"ending"}]}
+  ]
+};
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startSurvey(){showScreen('survey-screen');loadQuestion(1);}
+
+// 加载问题
+function loadQuestion(id){
+  const q=surveyData.questions.find(item=>item.id===id);surveyData.currentId=id;
+  const container=document.getElementById('options-container');container.innerHTML='';
+  document.getElementById('progress-fill').style.width = `${(q.number-1)/surveyData.questions.length*100}%`;
+  document.getElementById('question-number').textContent = `第${q.number}题 / 共15题`;
+  document.getElementById('question-text').textContent = q.text;
+
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement('button');btn.className='option-button';btn.textContent=opt.text;
+    btn.onclick=()=>{  // 仅问卷内部选项使用锁
+      if(isProcessing) return;
+      isProcessing=true;
+
+      if(q.id===1) surveyData.answers.gender=opt.text;
+      if(q.id===2 && opt.effect==='flashText'){applyEffect('flashText',opt.effectText);setTimeout(()=>{isProcessing=false;loadQuestion(opt.next);},200); return;}
+      if(q.id===5){btn.textContent="你没给我！";btn.style.color="#666";btn.style.borderColor="#444";setTimeout(()=>{isProcessing=false;loadQuestion(opt.next||6);},300);return;}
+      if(q.id===6 && i===2){
+        const orig=btn.textContent;
+        const fullText = opt.effectText;
+        btn.style.fontSize='14px';
+        btn.style.wordWrap = 'break-word';
+        btn.style.overflowWrap = 'break-word';
+        btn.style.whiteSpace = 'normal';
+        btn.style.maxWidth = '100%';
+        typeWriter(btn, fullText, 50, () => {
+          setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.fontSize='16px';
+          btn.style.wordWrap = '';
+          btn.style.overflowWrap = '';
+          btn.style.whiteSpace = '';
+          btn.style.maxWidth = '';
+          isProcessing=false;
+          loadQuestion(opt.next);
+          }, 1);
+          });
+        return;}
+      if(q.id===7 && i===0){loadBlackScreenQuestion(opt.next); return;}
+      if(q.id===11){applyEffect('strongShake'); setTimeout(()=>{isProcessing=false;loadQuestion(opt.next);},1000); return;}
+
+      handleOptionClick(q,opt,i);
+    };
+    container.appendChild(btn);
+  });
+  if(q.effect && !(q.id===2)) applyEffect(q.effect,q.effectText);
+}
+
+//打字机效果
+function typeWriter(element, text, speed, callback) {
+  let i = 0;
+  element.textContent = '';
+  function typing() {
+    if (i < text.length) {
+      element.textContent += text.charAt(i);
+      i++;
+      setTimeout(typing, speed);
+    } else {
+      if (callback) callback();
+    }
+  }
+  typing();
+}
+
+// 普通选项点击
+function handleOptionClick(q,opt,i){
+  const screen=document.getElementById('survey-screen');screen.classList.remove('shake-medium','shake-strong');
+  if(opt.forceReselect){applyEffect('flashText','要诚实'); isProcessing=false; return;}
+  if(q.id===12) surveyData.answers.question12=opt.text;
+  if(q.id===13) surveyData.answers.question13=opt.text;
+  if(q.id===17) surveyData.answers.question15=opt.text;
+  if(q.id===1){loadQuestion(opt.text==="男性"?2:3); isProcessing=false; return;}
+  if(opt.next==='ending'){showEnding(); return;}
+  loadQuestion(opt.next);
+  isProcessing=false;
+}
+
+// 特效处理
+function applyEffect(type,text){
+  const screen=document.getElementById('survey-screen');
+  const effectLayer=document.getElementById('effect-layer');
+  screen.classList.remove('shake-medium','shake-strong');
+
+  switch(type){
+  case 'flashText':
+      effectLayer.style.backgroundColor='transparent';
+      effectLayer.style.opacity=1;
+      effectLayer.innerHTML=`<div class="flash-text">${text}</div>`;
+      setTimeout(()=>{document.querySelector('.flash-text').style.opacity=1;},10);
+      setTimeout(()=>{document.querySelector('.flash-text').style.opacity=0; effectLayer.style.opacity=0;},200);
+      break;
+  case 'blackScreen':
+  effectLayer.style.position='fixed';
+  effectLayer.style.top='0'; 
+  effectLayer.style.left='0';
+  effectLayer.style.width='100%'; 
+  effectLayer.style.height='100%';
+  effectLayer.style.backgroundColor='#000';
+  effectLayer.style.display='flex'; 
+  effectLayer.style.justifyContent='center'; 
+  effectLayer.style.alignItems='flex-start'; // 改为从顶部开始
+  effectLayer.style.opacity=1; 
+  effectLayer.style.zIndex=9999;
+  effectLayer.innerHTML=`
+    <div style="
+      color:#ff0000;
+      font-size:48px;
+      text-align:center;
+      width:90%;               /* 限制宽度为屏幕的90% */
+      word-wrap:break-word;    /* 自动换行（兼容旧浏览器） */
+      overflow-wrap:break-word; /* 现代浏览器自动换行 */
+      white-space:normal;      /* 允许正常换行（覆盖可能的nowrap） */
+      line-height:1.2;         /* 调整行高，避免文字重叠 */
+      padding: 0 0 0 0; 
+    ">${text}</div>
+  `;
+  break;
+    case 'shake': screen.classList.add('shake-medium'); break;
+    case 'strongShake': screen.classList.add('shake-strong'); break;
+  }
+}
+
+// 黑屏专用
+function loadBlackScreenQuestion(nextId){
+  if(isEffectRunning) return;
+  isEffectRunning=true;
+  applyEffect('blackScreen','所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗所以我对你来说仅此而已吗');
+  setTimeout(()=>{
+    const effectLayer=document.getElementById('effect-layer');
+    effectLayer.style.opacity=0; effectLayer.style.backgroundColor='transparent'; effectLayer.innerHTML='';
+    loadQuestion(nextId);
+    isEffectRunning=false;
+    isProcessing=false;
+  },300);
+}
+
+// 结局显示
+function showEnding(){
+  const q13 = surveyData.answers.question13, q15 = surveyData.answers.question15;
+  if(q13==='服毒' && q15==='后悔') endingId='ending-A';
+  else if(q13==='服毒' && q15==='不后悔') endingId='ending-B';
+  else if(q13!=='服毒' && q15==='后悔') endingId='ending-C';
+  else if(q13!=='服毒' && q15==='不后悔') endingId='ending-D';
+
+  const effectLayer = document.getElementById('effect-layer');
+  effectLayer.style.opacity = 1;
+  effectLayer.style.backgroundColor = '#000';
+  effectLayer.innerHTML = '';
+
+  // 回头动画
+  for(let i=0;i<50;i++){
+    const huitou=document.createElement('div');
+    huitou.textContent='回头';
+    huitou.style.position='absolute';
+    huitou.style.left=`${Math.random()*100}%`;
+    huitou.style.top=`${Math.random()*100}%`;
+    huitou.style.fontSize=`${Math.random()*30+20}px`;
+    huitou.style.transform=`rotate(${Math.random()*360}deg)`;
+    huitou.style.color='#8b0000';
+    huitou.style.opacity='0';
+    huitou.style.transition='opacity 1s';
+    effectLayer.appendChild(huitou);
+    setTimeout(()=>{huitou.style.opacity='1';},i*100);
+  }
+
+  // 动画完成后显示结局
+  setTimeout(()=>{
+    // 隐藏并清空 effectLayer
+    effectLayer.style.opacity = 0;
+    effectLayer.style.backgroundColor = 'transparent';
+    effectLayer.innerHTML = '';
+    //显示结局
+    showScreen(endingId);
+    isProcessing=false;
+    isEffectRunning=false;
+  },3000 + 20*100); // 3秒基础 + 每个回头渐显延迟
+}
+</script>
+</body>
+</html>
