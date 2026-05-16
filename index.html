@@ -21,14 +21,14 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 10px; /* 移动端避免紧贴屏幕边缘 */
+    padding: 20px;
 }
 
 /* ====================== 屏幕容器 ====================== */
 .screen {
     width: 100%;
-    max-width: 600px; /* PC端最大宽度 */
-    height: auto;     /* 高度自适应 */
+    max-width: 600px;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -48,48 +48,32 @@ body {
     pointer-events: all;
 }
 
-/* ====================== 问卷选项按钮 ====================== */
-.option-button {
-    background: #1a1a1a;
-    color: #c9c9c9;
-    border: 1px solid #333;
-    padding: 12px 16px;
-    font-size: 1rem; /* rem自适应屏幕字体 */
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin: 5px 0;
-    width: 100%; /* 移动端占满容器宽度 */
+/* ====================== 问卷卡片（模仿示例布局） ====================== */
+#survey-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
 }
 
-.option-button:hover {
-    background: #2a2a2a;
-    border-color: #8b0000;
-}
-
-/* ====================== 闪烁文字 ====================== */
-.flash-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 5vw; /* 根据屏幕宽度自适应 */
-    max-font-size: 48px;
-    color: #ff0000;
-    text-shadow: 0 0 20px #ff0000;
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.5s;
+.question-wrapper {
+    width: 100%;
+    max-width: 560px;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
 /* ====================== 进度条 ====================== */
 .progress-bar {
     width: 100%;
-    max-width: 500px;
-    height: 10px;
-    background: #333;
-    margin-bottom: 20px;
-    border-radius: 5px;
+    height: 4px;
+    background: #1a1a1a;
+    margin-bottom: 24px;
+    border-radius: 2px;
     overflow: hidden;
 }
 
@@ -98,6 +82,67 @@ body {
     width: 0%;
     background: #8b0000;
     transition: width 0.3s;
+}
+
+/* ====================== 题号与题目 ====================== */
+#question-number {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+#question-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: #e0e0e0;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ====================== 选项按钮（黑灰系 + 示例布局） ====================== */
+#options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.option-button {
+    background: #111;
+    color: #b0b0b0;
+    border: 1px solid #2a2a2a;
+    padding: 16px 18px;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    width: 100%;
+    border-radius: 10px;
+}
+
+.option-button:hover {
+    background: #1a1a1a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.option-button:active {
+    transform: scale(0.995);
+}
+
+/* ====================== 闪烁文字 ====================== */
+.flash-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5vw;
+    max-font-size: 48px;
+    color: #ff0000;
+    text-shadow: 0 0 20px #ff0000;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.5s;
 }
 
 /* ====================== 特效层 ====================== */
@@ -146,18 +191,24 @@ body {
     .screen {
         padding: 15px;
     }
+    .question-wrapper {
+        padding: 24px 20px;
+    }
     .option-button {
-        padding: 10px 12px;
-        font-size: 0.9rem;
+        padding: 14px 16px;
+        font-size: 14px;
     }
     .flash-text {
         font-size: 8vw;
     }
 }
 @media screen and (max-width: 480px) {
+    .question-wrapper {
+        padding: 20px 16px;
+    }
     .option-button {
-        padding: 8px 10px;
-        font-size: 0.85rem;
+        padding: 12px 14px;
+        font-size: 13px;
     }
     .flash-text {
         font-size: 10vw;
@@ -269,7 +320,7 @@ function loadQuestion(id){
       isProcessing=true;
 
       if(q.id===1) surveyData.answers.gender=opt.text;
-      if(q.id===2 && opt.effect==='flashText'){applyEffect('flashText',opt.effectText);setTimeout(()=>{isProcessing=false;loadQuestion(opt.next);},200); return;}
+      if(q.id===2 && opt.effect==='flashText'){applyEffect('flashText',opt.effectText,300);setTimeout(()=>{isProcessing=false;loadQuestion(opt.next);},300); return;}
       if(q.id===5){btn.textContent="你没给我！";btn.style.color="#666";btn.style.borderColor="#444";setTimeout(()=>{isProcessing=false;loadQuestion(opt.next||6);},300);return;}
       if(q.id===6 && i===2){
         const orig=btn.textContent;
@@ -321,7 +372,7 @@ function typeWriter(element, text, speed, callback) {
 // 普通选项点击
 function handleOptionClick(q,opt,i){
   const screen=document.getElementById('survey-screen');screen.classList.remove('shake-medium','shake-strong');
-  if(opt.forceReselect){applyEffect('flashText','要诚实'); isProcessing=false; return;}
+  if(opt.forceReselect){applyEffect('flashText','要诚实',1000); isProcessing=false; return;}
   if(q.id===12) surveyData.answers.question12=opt.text;
   if(q.id===13) surveyData.answers.question13=opt.text;
   if(q.id===17) surveyData.answers.question15=opt.text;
@@ -332,7 +383,7 @@ function handleOptionClick(q,opt,i){
 }
 
 // 特效处理
-function applyEffect(type,text){
+function applyEffect(type,text,duration=200){
   const screen=document.getElementById('survey-screen');
   const effectLayer=document.getElementById('effect-layer');
   screen.classList.remove('shake-medium','shake-strong');
@@ -343,7 +394,7 @@ function applyEffect(type,text){
       effectLayer.style.opacity=1;
       effectLayer.innerHTML=`<div class="flash-text">${text}</div>`;
       setTimeout(()=>{document.querySelector('.flash-text').style.opacity=1;},10);
-      setTimeout(()=>{document.querySelector('.flash-text').style.opacity=0; effectLayer.style.opacity=0;},200);
+      setTimeout(()=>{document.querySelector('.flash-text').style.opacity=0; effectLayer.style.opacity=0;},duration);
       break;
   case 'blackScreen':
   effectLayer.style.position='fixed';
@@ -354,7 +405,7 @@ function applyEffect(type,text){
   effectLayer.style.backgroundColor='#000';
   effectLayer.style.display='flex'; 
   effectLayer.style.justifyContent='center'; 
-  effectLayer.style.alignItems='flex-start'; // 改为从顶部开始
+  effectLayer.style.alignItems='flex-start'; 
   effectLayer.style.opacity=1; 
   effectLayer.style.zIndex=9999;
   effectLayer.innerHTML=`
